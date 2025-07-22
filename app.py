@@ -11,6 +11,8 @@ from sqlalchemy.exc import IntegrityError
 import os
 import csv
 
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__, static_folder='../frontend/frontend/build')
@@ -93,4 +95,26 @@ def serve_react_app(path):
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+        # --- Add population logic here ---
+        # Populate players from Players.csv if table is empty
+        if not Player.query.first():
+            csv_path = os.path.join(BASE_DIR, 'Players.csv')
+            if os.path.exists(csv_path):
+                with open(csv_path, 'r') as file:
+                    reader = csv.DictReader(file)
+                    for row in reader:
+                        try:
+                            player = Player(
+                                name=row['name'],
+                                position=row['position'],
+                                price=float(row['price']),
+                                house=row['house']
+                            )
+                            db.session.add(player)
+                        except Exception:
+                            continue
+                    db.session.commit()
+                print("Database populated successfully!")
+            else:
+                print("Players.csv not found. Skipping population.")
     app.run(port=5001, debug=False)

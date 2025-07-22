@@ -3,29 +3,25 @@ from app import app, db
 from models import Player, User
 import csv
 from decimal import Decimal
-with app.app_context():
-    # Drop and recreate all tables
-    db.drop_all()
-    db.create_all()
+def populate_players():
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        csv_file_path = os.path.join(os.path.dirname(__file__), 'Players.csv')
+        with open(csv_file_path, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                player = Player(
+                    name=row['name'],
+                    position=row['position'],
+                    price=float(row['price']),
+                    house=row['house']
+                )
+                db.session.add(player)
+        db.session.commit()
+        print("Database populated successfully!")
 
-    # Construct the path to Players.csv relative to the script's location
-    csv_file_path = os.path.join(os.path.dirname(__file__), 'Players.csv')
-
-    # Read players from CSV and add to database
-    with open(csv_file_path, 'r') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            player = Player(
-                name=row['name'],
-                position=row['position'],
-                price=float(row['price']),
-                house=row['house']
-            )
-            db.session.add(player)
-    
-    db.session.commit()
-    print("Database populated successfully!")
-
+        
 def create_grandslam_admin():
     with app.app_context():
         email = 'grandslam@doonschool.com'
