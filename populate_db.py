@@ -42,4 +42,4 @@ def create_grandslam_admin():
             print('Grandslam admin user already exists.')
 
 if __name__ == '__main__':
-    create_grandslam_admin()
+    populate_players()
