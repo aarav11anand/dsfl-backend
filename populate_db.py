@@ -43,3 +43,4 @@ def create_grandslam_admin():
 
 if __name__ == '__main__':
     populate_players()
+    create_grandslam_admin()
