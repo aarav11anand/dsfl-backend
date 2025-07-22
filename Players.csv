@@ -1,51 +1,177 @@
 name,position,price,house
-Advait Reddy,GK,7,Jaipur
-Shaurya Mehra,MID,11,Oberoi
-Ayaan Verma,DEF,6,Tata
-Kabir Reddy,ATT,4,Oberoi
-Reyansh Singh,GK,4,Tata
-Aarav Agarwal,ATT,4,Oberoi
-Advait Sharma,MID,6,Jaipur
-Kabir Desai,DEF,11,Jaipur
-Shaurya Reddy,GK,6,Jaipur
-Ayaan Desai,MID,4,Tata
-Reyansh Kapoor,DEF,11,Hyderabad
-Ishaan Singh,ATT,1,Oberoi
-Arjun Mehra,GK,7,Tata
-Advait Desai,ATT,7,Oberoi
-Reyansh Sharma,DEF,12,Jaipur
-Kabir Agarwal,MID,2,Oberoi
-Aarav Agarwal,ATT,7,Kashmir
-Ishaan Desai,ATT,6,Jaipur
-Ayaan Agarwal,MID,2,Tata
-Advait Desai,GK,13,Kashmir
-Aarav Reddy,DEF,10,Hyderabad
-Vivaan Mehra,ATT,10,Tata
-Advait Verma,MID,15,Kashmir
-Ayaan Verma,ATT,15,Hyderabad
-Shaurya Agarwal,DEF,2,Kashmir
-Ayaan Kapoor,ATT,9,Kashmir
-Advait Verma,GK,15,Oberoi
-Ayaan Malhotra,MID,14,Kashmir
-Reyansh Malhotra,DEF,1,Tata
-Kabir Singh,ATT,14,Oberoi
-Arjun Kapoor,GK,14,Hyderabad
-Reyansh Joshi,DEF,8,Kashmir
-Advait Agarwal,MID,3,Hyderabad
-Arjun Agarwal,ATT,7,Kashmir
-Ishaan Reddy,DEF,5,Oberoi
-Shaurya Malhotra,DEF,11,Jaipur
-Aarav Verma,GK,14,Jaipur
-Kabir Reddy,MID,9,Oberoi
-Ishaan Kapoor,ATT,4,Jaipur
-Kabir Agarwal,DEF,5,Oberoi
-Ishaan Desai,MID,12,Tata
-Arjun Verma,DEF,15,Tata
-Advait Sharma,ATT,11,Kashmir
-Arjun Verma,GK,1,Kashmir
-Vivaan Reddy,MID,4,Kashmir
-Vivaan Joshi,MID,6,Jaipur
-Advait Reddy,GK,5,Oberoi
-Reyansh Verma,DEF,6,Tata
-Arjun Singh,DEF,13,Jaipur
-Shaurya Kapoor,ATT,8,Kashmir
+Arnav Kharpude,GK,4,Hyderabad
+Viraj Verma,DEF,4.5,Hyderabad
+Nityaraj Sodha,DEF,6.5,Hyderabad
+Aayansh Pandey,DEF,4.5,Hyderabad
+Viraj Agarwal,DEF,3.5,Hyderabad
+Trijat Sah,MID,6,Hyderabad
+Rishaan Veer Singh ,MID,6.5,Hyderabad
+Vishruth Sareen ,MID,5,Hyderabad
+Daksh Agarwal,ATT,7.5,Hyderabad
+Ranveer Goyal,ATT,6,Hyderabad
+Devaank Garg,ATT,6,Hyderabad
+Daksh Jindal,GK,5.5,Hyderabad
+Aarav Anand,GK,5,Hyderabad
+Aaditya Agrawal,GK,4.5,Hyderabad
+Shlok Thumar,DEF,8,Hyderabad
+Rahul Oram,DEF,9.5,Hyderabad
+Devansh Jitu,DEF,5.5,Hyderabad
+Gurdev Singh Raina,DEF,6,Hyderabad
+Dhruvraj Negi ,DEF,5,Hyderabad
+Udayaditya Samantha,DEF,7,Hyderabad
+Loechin Phangcho ,DEF,5.5,Hyderabad
+Vedant Mangal,DEF,6.5,Hyderabad
+Bhavesh Joshi,DEF,6.5,Hyderabad
+Agasthya Jain,DEF,5.5,Hyderabad
+Shauryajit Singh,MID,15,Hyderabad
+Jigmet Urgain,MID,11,Hyderabad
+Aryan Ranjan,MID,9,Hyderabad
+Shaurya Kedia,MID,6,Hyderabad
+Arjit Singh Sandhu,MID,7.5,Hyderabad
+Siddhart Kothari,MID,8.5,Hyderabad
+Andrew Bernstein  ,MID,7,Hyderabad
+Neerav Bansal,MID,9,Hyderabad
+Abhay Verma ,ATT,8.5,Hyderabad
+Ayaan Mittal,ATT,6,Hyderabad
+Kovid Kagdee,ATT,13.5,Hyderabad
+Neil Kashyap ,ATT,7.5,Hyderabad
+Rafay Habibullah,DEF,4,Hyderabad
+Anay Singh,DEF,4.5,Hyderabad
+Chinmaya Tripathi,MID,13.5,Kashmir
+Neer Agarwal,MID,8,Kashmir
+Harsh Begani,ATT,7.5,Kashmir
+Arav Agarwal,MID,7,Kashmir
+Abhimanyu Chaudhary,DEF,5,Kashmir
+Aadhvan Suri,GK,5,Kashmir
+Krish Agarwal,ATT,7.5,Kashmir
+Sumehr Pasricha,ATT,8,Kashmir
+Harshil Makin,DEF,6,Kashmir
+Krishiv Jaiswal,MID,7.5,Kashmir
+Chaitanya Kshirsagar,MID,5.5,Kashmir
+Rushil Agarwal,DEF,6.5,Kashmir
+Anantvikram Sinh,DEF,8,Kashmir
+Shaurya Yadav,MID,7.5,Kashmir
+Aarav Shukla,DEF,5.5,Kashmir
+Phongang Bhuchem,DEF,6.5,Kashmir
+Danish General,DEF,5,Kashmir
+Pratham Agarwal,GK,5,Kashmir
+Abhishek Shukla,ATT,10,Kashmir
+Aryan Agarwal,DEF,5,Kashmir
+Ruhaan Lakhina,MID,6,Kashmir
+Aditya Shashank,DEF,6,Kashmir
+Jahaan Santalani,DEF,5,Kashmir
+Udai Singh,DEF,5.5,Kashmir
+Ansh Gulia,ATT,7.5,Kashmir
+Rajveer Agarwal,ATT,6.5,Kashmir
+Aashman Agarwal,MID,11.5,Kashmir
+Darius Sharma,MID,11.5,Kashmir
+Rushil Jain,GK,5.5,Kashmir
+Armaan Singh,DEF,7.5,Kashmir
+Jawad Khan,DEF,6,Kashmir
+Abhiveer Harkawat,ATT,8,Kashmir
+Viraj Drolia,ATT,8.5,Kashmir
+Kaif Khanji,ATT,7.5,Kashmir
+Samik Garg,MID,6.5,Kashmir
+Arsh Khanji,DEF,6,Kashmir
+Zohair Masood,DEF,5,Kashmir
+Ved Agarwal,GK,3.5,Kashmir
+Aditya Dungarpur,MID,12,Jaipur
+Debojoyti Ghosh,DEF,9,Jaipur
+Arnav Agarwal,ATT,9,Jaipur
+Srivatsa Vaid,MID,8,Jaipur
+Jai Rana,MID,15,Jaipur
+Sahej Jain,DEF,7.5,Jaipur
+Zorawar Sandhu,DEF,7,Jaipur
+Samarth Thapa,ATT,8,Jaipur
+Agastya Munjal ,GK,6,Jaipur
+Shaurya Beriwal,DEF,6.5,Jaipur
+Nahaar Khatri,MID,8.5,Jaipur
+Naman Adlakha,ATT,6.5,Jaipur
+Arjun Wadhwani ,MID,10,Jaipur
+Ishaan Gupta,ATT,8,Jaipur
+Harsh Agarwal,ATT,7.5,Jaipur
+Viraj Singh,MID,5,Jaipur
+Kavya Singh,MID,6,Jaipur
+Vashist,MID,8,Jaipur
+Arnav Tiwari,DEF,5,Jaipur
+Siddham Tater,DEF,5.5,Jaipur
+Aarit Singhania,DEF,6.5,Jaipur
+Aarav Kathuria,GK,5.5,Jaipur
+Aahaan Gupta,DEF,6,Jaipur
+Sean Burman,ATT,8,Jaipur
+Aaditya Khanna,GK,5,Jaipur
+Uday Rana,MID,10,Jaipur
+Kaushal Golyan,DEF,6.5,Jaipur
+Anhad Sarin,GK,6,Jaipur
+Rudra Jalan ,DEF,6,Jaipur
+Aatish Shreshta,ATT,8,Jaipur
+Saharsh Khetan,MID,7,Jaipur
+Ayaan Adeeb ,MID,11,Jaipur
+Avirat Jain,MID,7,Jaipur
+Raghav Walia,ATT,6,Jaipur
+Raghav Gupta,DEF,5,Jaipur
+Vihaan Dewan,DEF,4.5,Jaipur
+Lohitaksh Gupta,DEF,6.5,Oberoi
+Taarak Harjai,DEF,5,Oberoi
+Adoksh Singh,DEF,8,Oberoi
+Krish Ghai,DEF,4,Oberoi
+Parshad Kumar,MID,5,Oberoi
+Jaiveer Grewal,MID,7,Oberoi
+Nabhij Singhal,MID,8,Oberoi
+Arjun Gupta,ATT,8.5,Oberoi
+Sahhil Chhabra,ATT,6.5,Oberoi
+Artham Gupta,ATT,6.5,Oberoi
+Anshuman Gupta,GK,5.5,Oberoi
+Teerthak Dewan,DEF,5,Oberoi
+Hrishikesh Aiyer,DEF,4.5,Oberoi
+Viraj Rastogi,DEF,4.5,Oberoi
+Rahul Kapri,DEF,4.5,Oberoi
+Adhiraj Mann,MID,5,Oberoi
+Savya Somani,MID,5,Oberoi
+Shaurya Gupta,MID,5.5,Oberoi
+Kanishk Bammi,ATT,5.5,Oberoi
+Akash Mishra,ATT,6,Oberoi
+Samarth Gupta,ATT,5.5,Oberoi
+Ayaaz Ferozi,GK,4,Oberoi
+Bawa Singh,DEF,4.5,Oberoi
+Tanay Lal,DEF,6,Oberoi
+Shaurya Jalan,DEF,5.5,Oberoi
+Kandarp Singh,DEF,6.5,Oberoi
+Daksh Singh,DEF,6,Oberoi
+Mahek Kumar,MID,4.5,Oberoi
+Ujjwal Singh,MID,5.5,Oberoi
+Dhrubo Mishra,MID,6.5,Oberoi
+Aahan Agrawal,MID,7.5,Oberoi
+Rananjay Dave,ATT,6,Oberoi
+Reyansh Agarwal,ATT,5.5,Oberoi
+Shivansh Bisht,GK,5,Oberoi
+Kaavye Sood,ATT,12,Tata
+Ekagra Kasana,GK,7.5,Tata
+Ranveer Singh Saharan,ATT,9,Tata
+Vedant Kapoor,MID,9,Tata
+Pranay Gupta,DEF,7,Tata
+Shiven Rungta,DEF,5.5,Tata
+Uday Pratap Sardana,DEF,7.5,Tata
+Sushil Kasi,ATT,10.5,Tata
+Yashveer Tewatia,MID,9,Tata
+Keshav Saraf,ATT,6.5,Tata
+Arsh Mishra,MID,6.5,Tata
+Surya Verma,ATT,7,Tata
+Hemant Khandelwal,DEF,5.5,Tata
+Yohaan Marda,DEF,5.5,Tata
+Aarush Kokra,GK,5.5,Tata
+Sarosh Aziz Kamal,MID,5.5,Tata
+Barun Borgoyari,DEF,6.5,Tata
+Neer Charming Thakuria,DEF,5.5,Tata
+Kai Kubo,DEF,5,Tata
+Vaibhav Santuka,MID,6.5,Tata
+Rohan Nayar,MID,7.5,Tata
+Arrjun Gondalia,MID,10,Tata
+Adarsh Kumar,DEF,6,Tata
+Aayan Srivastava,DEF,6,Tata
+Druvan Mahanta,MID,8,Tata
+Vivaan Arora,ATT,6,Tata
+Advay Ratan Surana,GK,5,Tata
+Hridansh Nagpal,MID,6,Tata
+Sumer Singh Gill,ATT,7,Tata
+Luksh Shah,MID,13,Tata

@@ -2,7 +2,7 @@ import os
 from app import app, db
 from models import Player, User
 import csv
-
+from decimal import Decimal
 with app.app_context():
     # Drop and recreate all tables
     db.drop_all()
@@ -18,7 +18,7 @@ with app.app_context():
             player = Player(
                 name=row['name'],
                 position=row['position'],
-                price=int(row['price']),
+                price=float(row['price']),
                 house=row['house']
             )
             db.session.add(player)

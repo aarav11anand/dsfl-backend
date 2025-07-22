@@ -11,6 +11,8 @@ from sqlalchemy.exc import IntegrityError
 import os
 import csv
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 app = Flask(__name__, static_folder='../frontend/frontend/build')
 app.config.from_object(Config)
 

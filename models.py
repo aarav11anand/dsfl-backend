@@ -51,7 +51,8 @@ class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
     position = db.Column(db.String(10), nullable=False)  # e.g., GK, DEF, MID, ATT
-    price = db.Column(db.Integer, nullable=False)
+    from sqlalchemy import Numeric
+    price = db.Column(Numeric(20, 1), nullable=False)
     house = db.Column(db.String(50), nullable=True)
     # Relationship to TeamPlayer for many-to-many with teams
     team_associations = db.relationship('TeamPlayer', back_populates='player', lazy=True)

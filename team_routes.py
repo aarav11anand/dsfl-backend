@@ -4,7 +4,7 @@ from utils import token_required
 from config import BUDGET, FORMATIONS
 from flask_jwt_extended import get_jwt_identity
 from sqlalchemy.orm import joinedload
-
+from decimal import Decimal
 team = Blueprint('team', __name__)
 
 # Helper function for validation
@@ -17,7 +17,7 @@ def validate_team_data(players_data, formation_name):
     formation_rules = FORMATIONS[formation_name]
     player_counts: dict[str, int] = {'GK': 0, 'DEF': 0, 'MID': 0, 'ATT': 0}
     house_counts = {}
-    total_price = 0
+    total_price = Decimal('0.0')
     assigned_player_ids = set()
     captain_found = False
 

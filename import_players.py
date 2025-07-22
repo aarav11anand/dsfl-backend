@@ -3,7 +3,7 @@ from app import app
 from models import db, Player
 
 CSV_FILE = 'players.csv'
-
+from decimal import Decimal
 def import_players():
     with app.app_context():
         with open(CSV_FILE, newline='', encoding='utf-8') as csvfile:
@@ -12,7 +12,8 @@ def import_players():
                 player = Player(
                     name=row['name'],
                     position=row['position'],
-                    price=int(row['price']),
+                    
+                    price=float(row['price']),
                     house=row['house']
                 )
                 db.session.add(player)
