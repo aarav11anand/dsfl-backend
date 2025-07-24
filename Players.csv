@@ -13,8 +13,8 @@ Devaank Garg,ATT,6,Hyderabad
 Daksh Jindal,GK,6,Hyderabad
 Aarav Anand,GK,5.5,Hyderabad
 Aaditya Agrawal,GK,5,Hyderabad
-Shlok Thumar,DEF,8,Hyderabad
-Rahul Oram,DEF,9.5,Hyderabad
+Shlok Thumar,DEF,7.5,Hyderabad
+Rahul Oram,DEF,9,Hyderabad
 Devansh Jitu,DEF,5.5,Hyderabad
 Gurdev Singh Raina,DEF,6,Hyderabad
 Dhruvraj Negi ,DEF,5,Hyderabad
@@ -49,7 +49,7 @@ Harshil Makin,DEF,6,Kashmir
 Krishiv Jaiswal,MID,7.5,Kashmir
 Chaitanya Kshirsagar,MID,5.5,Kashmir
 Rushil Agarwal,DEF,6.5,Kashmir
-Anantvikram Sinh,DEF,8,Kashmir
+Anantvikram Sinh,DEF,7.5,Kashmir
 Shaurya Yadav,MID,7.5,Kashmir
 Aarav Shukla,DEF,5.5,Kashmir
 Phongang Bhuchem,DEF,6.5,Kashmir
@@ -76,30 +76,30 @@ Arsh Khanji,DEF,6,Kashmir
 Zohair Masood,DEF,5,Kashmir
 Ved Agarwal,GK,4,Kashmir
 Aditya Dungarpur,MID,12,Jaipur
-Debojyoti Ghosh,DEF,9.5,Jaipur
-Arnav Agarwal,ATT,9.5,Jaipur
-Shrivatsa Vaid,MID,9,Jaipur
+Debojyoti Ghosh,DEF,9,Jaipur
+Arnav Agarwal,ATT,8.5,Jaipur
+Shrivatsa Vaid,MID,9.5,Jaipur
 Jai Rana,MID,15.5,Jaipur
 Sahej Jain,DEF,8,Jaipur
-Zorawar Sandhu,DEF,7.5,Jaipur
+Zorawar Sandhu,DEF,7,Jaipur
 Samarth Thapa,ATT,8,Jaipur
 Agastya Munjal ,GK,7,Jaipur
 Shaurya Beriwal,DEF,6.5,Jaipur
 Naahar Khattri,MID,9,Jaipur
 Naman Adlakha,ATT,6.5,Jaipur
-Arjun Wadhwani ,MID,10.5,Jaipur
+Arjun Wadhwani ,MID,10,Jaipur
 Ishaan Gupta,ATT,8.5,Jaipur
 Harsh Agarwal,ATT,7.5,Jaipur
 Viraj Singh,MID,5.5,Jaipur
 Kavya Singh,MID,6,Jaipur
-Vashisht,MID,8,Jaipur
+Vashisht Choudhary,MID,8,Jaipur
 Arnav Tiwari,DEF,5.5,Jaipur
 Siddham Tater,DEF,5.5,Jaipur
 Aarit Singhania,DEF,6.5,Jaipur
 Aarav Kathuria,GK,6,Jaipur
 Aahaan Gupta,DEF,6.5,Jaipur
 Sean Burman,ATT,8,Jaipur
-Aaditya Khanna,GK,5.5,Jaipur
+Aaditya Khanna,GK,5,Jaipur
 Uday Rana,MID,10.5,Jaipur
 Kaushal Golyan,DEF,6.5,Jaipur
 Anhad Sarin,GK,6,Jaipur
@@ -113,7 +113,7 @@ Raghav Gupta,DEF,5,Jaipur
 Vihaan Dewan,DEF,4.5,Jaipur
 Lohitaksh Gupta,DEF,6.5,Oberoi
 Taarak Harjai,DEF,5,Oberoi
-Adoksh Singh,DEF,8,Oberoi
+Adoksh Singh,DEF,8.5,Oberoi
 Krish Ghai,DEF,4.5,Oberoi
 Parshad Kumar,MID,5,Oberoi
 Jaiveer Grewal,MID,7,Oberoi
@@ -136,7 +136,7 @@ Ayaaz Ferozi,GK,4.5,Oberoi
 Siddharth Bawa,DEF,4.5,Oberoi
 Tanay Lal,DEF,6,Oberoi
 Shaurya Jalan,DEF,5.5,Oberoi
-Kandarp Singh,DEF,6.5,Oberoi
+Kandarp Singh,DEF,7,Oberoi
 Daksh Singh,DEF,6,Oberoi
 Mahek Kumar,MID,4.5,Oberoi
 Ujjwal Singh,MID,5.5,Oberoi
