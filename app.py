@@ -92,10 +92,12 @@ def serve_react_app(path):
     # For any other path, return 404 since we want React Router to handle client-side routing
     return jsonify({"error": "Not Found"}), 404
 
-if __name__ == "__main__":
+def initialize_database():
+    """Initialize the database and populate initial data."""
     with app.app_context():
+        # Create all database tables
         db.create_all()
-        # --- Add population logic here ---
+        
         # Populate players from Players.csv if table is empty
         if not Player.query.first():
             csv_path = os.path.join(BASE_DIR, 'Players.csv')
@@ -111,10 +113,26 @@ if __name__ == "__main__":
                                 house=row['house']
                             )
                             db.session.add(player)
-                        except Exception:
+                        except Exception as e:
+                            print(f"Error adding player {row.get('name')}: {str(e)}")
                             continue
+                    
+                    # Add default admin user if not exists
+                    if not User.query.filter_by(email='admin@grandslam.com').first():
+                        admin = User(
+                            name='GrandSlam Admin',
+                            email='admin@grandslam.com',
+                            user_type='teacher',
+                            is_admin=True
+                        )
+                        admin.set_password('admin123')  # Make sure to set a secure password in production
+                        db.session.add(admin)
+                    
                     db.session.commit()
-                print("Database populated successfully!")
+                    print("Database populated successfully!")
             else:
                 print("Players.csv not found. Skipping population.")
-    app.run(port=5001, debug=False)
+
+if __name__ == "__main__":
+    initialize_database()
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5001)), debug=False)
