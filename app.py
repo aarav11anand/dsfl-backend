@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, send_from_directory
 from config import Config
-from models import db, bcrypt, Player
+from models import db, bcrypt, Player, User, Team, TeamPlayer, TeamPlayerHistory, Match, PlayerPerformance
 from auth_routes import auth
 from team_routes import team
 from admin_routes import admin
