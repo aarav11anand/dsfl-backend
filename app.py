@@ -94,45 +94,74 @@ def serve_react_app(path):
 
 def initialize_database():
     """Initialize the database and populate initial data."""
-    with app.app_context():
-        # Create all database tables
-        db.create_all()
-        
-        # Populate players from Players.csv if table is empty
-        if not Player.query.first():
-            csv_path = os.path.join(BASE_DIR, 'Players.csv')
-            if os.path.exists(csv_path):
-                with open(csv_path, 'r') as file:
-                    reader = csv.DictReader(file)
-                    for row in reader:
-                        try:
-                            player = Player(
-                                name=row['name'],
-                                position=row['position'],
-                                price=float(row['price']),
-                                house=row['house']
-                            )
-                            db.session.add(player)
-                        except Exception as e:
-                            print(f"Error adding player {row.get('name')}: {str(e)}")
-                            continue
+    print("Starting database initialization...")
+    
+    try:
+        with app.app_context():
+            print("Creating database tables...")
+            db.create_all()
+            print("Database tables created successfully.")
+            
+            # Check if players table is empty
+            player_count = Player.query.count()
+            print(f"Found {player_count} existing players in the database.")
+            
+            # Populate players from Players.csv if table is empty
+            if player_count == 0:
+                csv_path = os.path.join(BASE_DIR, 'Players.csv')
+                print(f"Looking for Players.csv at: {csv_path}")
+                
+                if os.path.exists(csv_path):
+                    print("Found Players.csv. Starting to populate players...")
+                    added_players = 0
+                    with open(csv_path, 'r', encoding='utf-8') as file:
+                        reader = csv.DictReader(file)
+                        for row in reader:
+                            try:
+                                player = Player(
+                                    name=row['name'],
+                                    position=row['position'],
+                                    price=float(row['price']),
+                                    house=row['house']
+                                )
+                                db.session.add(player)
+                                added_players += 1
+                            except Exception as e:
+                                print(f"Error adding player {row.get('name')}: {str(e)}")
+                                continue
                     
-                    # Add default admin user if not exists
-                    if not User.query.filter_by(email='admin@grandslam.com').first():
-                        admin = User(
-                            name='GrandSlam Admin',
-                            email='admin@grandslam.com',
-                            user_type='teacher',
-                            is_admin=True
-                        )
-                        admin.set_password('admin123')  # Make sure to set a secure password in production
-                        db.session.add(admin)
-                    
-                    db.session.commit()
-                    print("Database populated successfully!")
+                    print(f"Successfully added {added_players} players to the database.")
+                else:
+                    print("WARNING: Players.csv not found. No players were added to the database.")
+            
+            # Add default admin user if not exists
+            admin = User.query.filter_by(email='admin@grandslam.com').first()
+            if not admin:
+                print("Creating default admin user...")
+                admin = User(
+                    name='GrandSlam Admin',
+                    email='admin@grandslam.com',
+                    user_type='teacher',
+                    is_admin=True
+                )
+                admin.set_password('admin123')  # Change this in production!
+                db.session.add(admin)
+                print("Default admin user created successfully.")
             else:
-                print("Players.csv not found. Skipping population.")
+                print("Admin user already exists.")
+            
+            # Commit all changes
+            db.session.commit()
+            print("Database initialization completed successfully!")
+            
+    except Exception as e:
+        print(f"ERROR during database initialization: {str(e)}")
+        print("Please check your database configuration and try again.")
+        raise  # Re-raise the exception to prevent the app from starting with a broken database
+
+# Initialize database when the app starts
+with app.app_context():
+    initialize_database()
 
 if __name__ == "__main__":
-    initialize_database()
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5001)), debug=False)
