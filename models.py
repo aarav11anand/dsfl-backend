@@ -5,11 +5,7 @@ from sqlalchemy import Text
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 
-# Association table for Team and Player (many-to-many relationship)
-team_players = db.Table('team_players',
-    db.Column('team_id', db.Integer, db.ForeignKey('team.id'), primary_key=True),
-    db.Column('player_id', db.Integer, db.ForeignKey('player.id'), primary_key=True)
-)
+# Association table for Team and Player (many-to-many relationship) is now handled by the TeamPlayer model
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -54,10 +50,16 @@ class Player(db.Model):
     from sqlalchemy import Numeric
     price = db.Column(Numeric(20, 1), nullable=False)
     house = db.Column(db.String(50), nullable=True)
+    
     # Relationship to TeamPlayer for many-to-many with teams
-    team_associations = db.relationship('TeamPlayer', back_populates='player', lazy=True)
+    team_associations = db.relationship('TeamPlayer', back_populates='player', lazy=True, cascade='all, delete-orphan')
+    
     # Relationship to PlayerPerformance for one-to-many
-    performances = db.relationship('PlayerPerformance', back_populates='player', lazy=True)
+    performances = db.relationship('PlayerPerformance', back_populates='player', lazy=True, cascade='all, delete-orphan')
+    
+    def get_current_teams(self):
+        """Get all teams this player is currently on"""
+        return [ta.team for ta in self.team_associations if ta.removed_date is None]
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -66,8 +68,12 @@ class Team(db.Model):
     formation = db.Column(db.String(20), nullable=True) # e.g., '4-4-2', '3-5-2', now nullable
     total_points = db.Column(db.Integer, default=0, nullable=False)
 
-    # Many-to-many relationship with Player through TeamPlayer
-    players = db.relationship('TeamPlayer', back_populates='team', lazy=True)
+    # Relationship with TeamPlayer for many-to-many with Player
+    players = db.relationship('TeamPlayer', back_populates='team', lazy=True, cascade='all, delete-orphan')
+    
+    # Helper method to get current active players
+    def get_current_players(self):
+        return [tp for tp in self.players if tp.removed_date is None]
 
 class TeamPlayer(db.Model):
     __tablename__ = 'team_players'
