@@ -261,33 +261,29 @@ def add_match_performance():
                 print(f"Player with ID {player_id} not found, skipping performance data: {pp_data}")
                 continue
 
-            # Check if performance already exists for this player in this match
-            player_performance = PlayerPerformance.query.filter_by(
+            # Delete any existing performance for this player in this match
+            PlayerPerformance.query.filter_by(
                 player_id=player_id,
                 match_id=match.id
-            ).first()
-
-            is_new = False
-            if not player_performance:
-                is_new = True
-                player_performance = PlayerPerformance(
-                    player_id=player_id,
-                    match_id=match.id
-                )
-                db.session.add(player_performance)
+            ).delete()
             
-            # Store previous points for logging
-            prev_points = player_performance.points
+            # Create a fresh performance record for this match
+            player_performance = PlayerPerformance(
+                player_id=player_id,
+                match_id=match.id,
+                goals=pp_data.get('goals', 0),
+                assists=pp_data.get('assists', 0),
+                clean_sheet=pp_data.get('clean_sheet', False),
+                goals_conceded=pp_data.get('goals_conceded', 0),
+                yellow_cards=pp_data.get('yellow_cards', 0),
+                red_cards=pp_data.get('red_cards', 0),
+                minutes_played=pp_data.get('minutes_played', 0),
+                bonus_points=pp_data.get('bonus_points', 0)
+            )
+            db.session.add(player_performance)
             
-            # Update performance stats
-            player_performance.goals = pp_data.get('goals', 0)
-            player_performance.assists = pp_data.get('assists', 0)
-            player_performance.clean_sheet = pp_data.get('clean_sheet', False)
-            player_performance.goals_conceded = pp_data.get('goals_conceded', 0)
-            player_performance.yellow_cards = pp_data.get('yellow_cards', 0)
-            player_performance.red_cards = pp_data.get('red_cards', 0)
-            player_performance.minutes_played = pp_data.get('minutes_played', 0)
-            player_performance.bonus_points = pp_data.get('bonus_points', 0)
+            # Calculate points for this performance
+            player_performance.points = calculate_player_points(player_performance, player.position)
 
             # Calculate points for this performance
             player_performance.points = calculate_player_points(player_performance, player.position)
@@ -308,21 +304,37 @@ def add_match_performance():
         
         # Now update all team points based on the new performance data
         print("\nUpdating team points...")
-        update_team_total_points()
-        
-        # Get the updated match details
-        match_data = {
-            'id': match.id,
-            'name': match.name,
-            'date': match.date.isoformat(),
-            'player_count': len(updated_players)
-        }
-        
-        return jsonify({
-            'message': 'Match performance data processed successfully!', 
-            'match': match_data,
-            'updated_players': len(updated_players)
-        }), 200
+        try:
+            update_team_total_points()
+            print("Team points updated successfully")
+            
+            # Get the updated match details
+            match_data = {
+                'id': match.id,
+                'name': match.name,
+                'date': match.date.isoformat(),
+                'player_count': len(updated_players)
+            }
+            
+            # Verify points were updated for teams
+            teams = Team.query.all()
+            for team in teams:
+                print(f"Team {team.name} now has {team.total_points} points")
+            
+            return jsonify({
+                'message': 'Match performance data processed successfully!', 
+                'match': match_data,
+                'updated_players': len(updated_players),
+                'teams_updated': len(teams)
+            }), 200
+            
+        except Exception as e:
+            db.session.rollback()
+            import traceback
+            error_msg = f"Error updating team points: {str(e)}"
+            print(error_msg)
+            print(traceback.format_exc())
+            return jsonify({'error': error_msg}), 500
 
     except Exception as e:
         db.session.rollback()
