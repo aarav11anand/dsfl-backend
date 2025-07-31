@@ -92,7 +92,27 @@ def serve_react_app(path):
     # For any other path, return 404 since we want React Router to handle client-side routing
     return jsonify({"error": "Not Found"}), 404
 
+def create_grandslam_admin():
+    with app.app_context():
+        email = 'grandslam@doonschool.com'
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            user = User(
+                name='Grandslam',
+                email=email,
+                house='Admin',
+                user_type='admin',
+                is_admin=True
+            )
+            user.set_password('admindsfl@xyz')
+            db.session.add(user)
+            db.session.commit()
+            print('Grandslam admin user created.')
+        else:
+            print('Grandslam admin user already exists.')
+
 if __name__ == "__main__":
+    
     with app.app_context():
         db.create_all()
         # --- Add population logic here ---
@@ -115,6 +135,7 @@ if __name__ == "__main__":
                             continue
                     db.session.commit()
                 print("Database populated successfully!")
+                create_grandslam_admin()
             else:
                 print("Players.csv not found. Skipping population.")
     app.run(port=5001, debug=False)
