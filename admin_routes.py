@@ -282,16 +282,8 @@ def add_match_performance():
             )
             db.session.add(player_performance)
             
-            # Calculate points for this performance
-            player_performance.points = calculate_player_points(player_performance, player.position)
-
-            # Calculate points for this performance
-            player_performance.points = calculate_player_points(player_performance, player.position)
-            
             # Log the update
-            action = "Created" if is_new else "Updated"
-            points_change = f" (was {prev_points} points)" if prev_points is not None else ""
-            updated_players.append(f"{action} {player.name}: {player_performance.points} points{points_change}")
+            updated_players.append(f"Updated {player.name}: {player_performance.points} points")
 
         # Commit the performance data first
         db.session.commit()
