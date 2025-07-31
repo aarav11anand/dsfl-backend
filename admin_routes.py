@@ -387,7 +387,6 @@ def add_match_performance():
                     **stats
                 )
                 db.session.add(performance)
-                action = 'added'
             
             # Calculate points for this performance
             performance.points = calculate_player_points(performance, player.position)
@@ -395,12 +394,12 @@ def add_match_performance():
             updated_players.append({
                 'player_id': player_id,
                 'player_name': player.name,
-                'action': action,
+                'action': 'updated' if performance else 'created',
                 'points': performance.points,
                 'stats': stats
             })
             
-            print(f"{action.capitalize()} performance for {player.name} in match {match.name}: {performance.points} points")
+            print(f"{'Updated' if performance else 'Created'} performance for {player.name} in match {match.name}: {performance.points} points")
         
         try:
             # Commit all changes to the database
@@ -456,32 +455,30 @@ def add_match_performance():
             print(traceback.format_exc())
             return jsonify({'error': error_msg}), 500
 
+@admin.route('/games/<int:game_id>', methods=['DELETE'])
+@token_required
+@admin_required
+def delete_game(game_id):
+    try:
+        game = Match.query.get(game_id)
+        if not game:
+            return jsonify({'message': f'Game with ID {game_id} not found.'}), 404
+
+        # Delete all player performance records associated with this game
+        PlayerPerformance.query.filter_by(match_id=game_id).delete()
+        db.session.delete(game)
+        db.session.commit()
+
+        # Recalculate team total points after deleting game and its performances
+        update_team_total_points()
+
+        return jsonify({'message': f'Game {game.name} and its associated player performances deleted successfully.'}), 200
     except Exception as e:
         db.session.rollback()
         import traceback
-        error_msg = f"Error adding match performance: {str(e)}"
-        print(error_msg)
+        print("Error deleting game:")
         print(traceback.format_exc())
-        return jsonify({'error': error_msg}), 500
-                )
-                db.session.add(performance)
-            
-            # Calculate points for this performance
-            performance.points = calculate_player_points(performance, player.position)
-            
-            # Log the update
-            updated_players.append({
-                'player_id': player_id,
-                'player_name': player.name,
-                'points': performance.points,
-                'goals': performance.goals,
-                'assists': performance.assists
-            })
-
-        # Commit the performance data
-        db.session.commit()
-        
-        # Now update all team points based on the new performance data
+        return jsonify({'error': str(e)}), 500
         print("\nUpdating team points...")
         try:
             # Update all teams' points
