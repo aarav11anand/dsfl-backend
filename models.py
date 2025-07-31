@@ -5,7 +5,11 @@ from sqlalchemy import Text
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 
-# Association table for Team and Player (many-to-many relationship) is now handled by the TeamPlayer model
+# Association table for Team and Player (many-to-many relationship)
+team_players = db.Table('team_players',
+    db.Column('team_id', db.Integer, db.ForeignKey('team.id'), primary_key=True),
+    db.Column('player_id', db.Integer, db.ForeignKey('player.id'), primary_key=True)
+)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -50,16 +54,10 @@ class Player(db.Model):
     from sqlalchemy import Numeric
     price = db.Column(Numeric(20, 1), nullable=False)
     house = db.Column(db.String(50), nullable=True)
-    
     # Relationship to TeamPlayer for many-to-many with teams
-    team_associations = db.relationship('TeamPlayer', back_populates='player', lazy=True, cascade='all, delete-orphan')
-    
+    team_associations = db.relationship('TeamPlayer', back_populates='player', lazy=True)
     # Relationship to PlayerPerformance for one-to-many
-    performances = db.relationship('PlayerPerformance', back_populates='player', lazy=True, cascade='all, delete-orphan')
-    
-    def get_current_teams(self):
-        """Get all teams this player is currently on"""
-        return [ta.team for ta in self.team_associations if ta.removed_date is None]
+    performances = db.relationship('PlayerPerformance', back_populates='player', lazy=True)
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -68,82 +66,17 @@ class Team(db.Model):
     formation = db.Column(db.String(20), nullable=True) # e.g., '4-4-2', '3-5-2', now nullable
     total_points = db.Column(db.Integer, default=0, nullable=False)
 
-    # Relationship with TeamPlayer for many-to-many with Player
-    players = db.relationship('TeamPlayer', back_populates='team', lazy=True, cascade='all, delete-orphan')
-    
-    # Helper method to get current active players
-    def get_current_players(self):
-        return [tp for tp in self.players if tp.removed_date is None]
+    # Many-to-many relationship with Player through TeamPlayer
+    players = db.relationship('TeamPlayer', back_populates='team', lazy=True)
 
 class TeamPlayer(db.Model):
-    __tablename__ = 'team_players'
-    
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), primary_key=True)
     is_captain = db.Column(db.Boolean, default=False, nullable=False)
-    added_date = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
-    removed_date = db.Column(db.DateTime, nullable=True)
-    
+
     # Relationships to Team and Player
     team = db.relationship('Team', back_populates='players')
     player = db.relationship('Player', back_populates='team_associations')
-    
-    def remove_player(self, match_id=None):
-        """Mark a player as removed from the team"""
-        self.removed_date = db.func.current_timestamp()
-        
-        # Record the removal in history
-        if db.inspect(self).persistent:
-            history = TeamPlayerHistory(
-                team_id=self.team_id,
-                player_id=self.player_id,
-                action='remove',
-                match_id=match_id
-            )
-            db.session.add(history)
-    
-    @classmethod
-    def add_player(cls, team_id, player_id, is_captain=False, match_id=None):
-        """Add a new player to a team"""
-        # First, check if this player is already on the team and not removed
-        existing = cls.query.filter_by(
-            team_id=team_id,
-            player_id=player_id,
-            removed_date=None
-        ).first()
-        
-        if existing:
-            return existing  # Player already on team
-            
-        # Check if this is a return (previously removed)
-        previous = cls.query.filter_by(
-            team_id=team_id,
-            player_id=player_id
-        ).order_by(cls.added_date.desc()).first()
-        
-        if previous and previous.removed_date:
-            # Player is being readded
-            previous.removed_date = None
-            player_assoc = previous
-        else:
-            # New player to the team
-            player_assoc = cls(
-                team_id=team_id,
-                player_id=player_id,
-                is_captain=is_captain
-            )
-            db.session.add(player_assoc)
-        
-        # Record the addition in history
-        history = TeamPlayerHistory(
-            team_id=team_id,
-            player_id=player_id,
-            action='add',
-            match_id=match_id
-        )
-        db.session.add(history)
-        
-        return player_assoc
 
 class Match(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -211,23 +144,6 @@ class AppSettings(db.Model):
         db.session.add(setting)
         db.session.commit()
         return setting
-
-class TeamPlayerHistory(db.Model):
-    """Tracks historical changes to team rosters"""
-    __tablename__ = 'team_player_history'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
-    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
-    action = db.Column(db.String(10), nullable=False)  # 'add' or 'remove'
-    change_date = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
-    match_id = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=True)  # The match this change is associated with
-    
-    # Relationships
-    team = db.relationship('Team', backref=db.backref('roster_changes', lazy=True))
-    player = db.relationship('Player', backref=db.backref('team_history', lazy=True))
-    match = db.relationship('Match', backref=db.backref('roster_changes', lazy=True))
-
 
 class NewsContent(db.Model):
     __tablename__ = 'news_content'

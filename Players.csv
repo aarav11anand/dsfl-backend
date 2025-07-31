@@ -1,14 +1,14 @@
 name,position,price,house
-Arnav Kharpude,GK,5,Hyderabad
-Viraj Verma,DEF,4.5,Hyderabad
-Nityaraj Sodha,DEF,7,Hyderabad
-Aayansh Pandey,DEF,4.5,Hyderabad
+Trish Badhwar,MID,5,Hyderabad
+Aarav Sahdev,DEF,5,Hyderabad
+Jahaan Nagrath,DEF,7,Hyderabad
+Advay goel,DEF,4.5,Hyderabad
 Viraj Agarwal,DEF,3.5,Hyderabad
-Trijat Sah,MID,6,Hyderabad
-Rishaan Veer Singh ,MID,6.5,Hyderabad
+Ishaan Bisht,GK,i,Hyderabad
+Shubh Agarwal,MID,6.5,Hyderabad
 Vishruth Sareen ,MID,5,Hyderabad
-Daksh Agarwal,ATT,7.5,Hyderabad
-Ranveer Goyal,ATT,6,Hyderabad
+Rian Gupta,ATT,7.5,Hyderabad
+Rajdeep Paliwal,ATT,6,Hyderabad
 Devaank Garg,ATT,6,Hyderabad
 Daksh Jindal,GK,6,Hyderabad
 Aarav Anand,GK,5.5,Hyderabad
@@ -53,9 +53,9 @@ Anantvikram Sinh,DEF,7.5,Kashmir
 Shaurya Yadav,MID,7.5,Kashmir
 Aarav Shukla,DEF,5.5,Kashmir
 Phongang Bhuchem,DEF,6.5,Kashmir
-Danish General,DEF,5.5,Kashmir
+Danish General,GK,5.5,Kashmir
 Pratham Agarwal,GK,5,Kashmir
-Abhishek Shukla,ATT,10.5,Kashmir
+Abhishek Shukla,MID,10.5,Kashmir
 Aryan Agarwal,DEF,5,Kashmir
 Ruhaan Lakhina,MID,6.5,Kashmir
 Aditya Shashank,DEF,6,Kashmir
@@ -109,7 +109,7 @@ Saharsh Khetan,MID,7,Jaipur
 Ayaan Adeeb ,MID,11,Jaipur
 Avirat Jain,MID,7,Jaipur
 Raghav Walia,ATT,6,Jaipur
-Raghav Gupta,DEF,5,Jaipur
+Tejas Bhardawaj,DEF,5,Jaipur
 Vihaan Dewan,DEF,4.5,Jaipur
 Lohitaksh Gupta,DEF,6.5,Oberoi
 Taarak Harjai,DEF,5,Oberoi
@@ -167,11 +167,19 @@ Kai Kubo,DEF,5,Tata
 Vaibhav Santuka,MID,6.5,Tata
 Rohan Nayar,MID,7.5,Tata
 Arrjun Gondalia,MID,10,Tata
-Adarsh Kumar,DEF,6,Tata
-Aayan Srivastava,DEF,6,Tata
+Adarsh Kumar,DEF,6.5,Tata
+Aayan Srivastava,DEF,6.5,Tata
 Druvan Mahanta,MID,8.5,Tata
 Vivaan Arora,ATT,6,Tata
 Advay Ratan Surana,GK,5.5,Tata
-Hridansh Nagpal,MID,6,Tata
+Ojas Tripathi,MID,6.5,Tata
 Sumer Singh Gill,ATT,7.5,Tata
 Luksh Shah,MID,13.5,Tata
+Neil Sahni,MID,9,Tata
+Ridaan Mehta,DEF,5,Hyderabad
+Paramveer Tewatia,DEF,5,Tata
+Uday  Thakaran,DEF,5.5,Tata
+Vedant Bajaj,ATT,4.5,Jaipur
+Ranveer Singh ,DEF,4.5,Jaipur
+Tanay Chowdry,DEF,4.5,Jaipur
+Arinjay Begani,DEF,4.5,Jaipur
