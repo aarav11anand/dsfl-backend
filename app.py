@@ -115,6 +115,7 @@ if __name__ == "__main__":
     
     with app.app_context():
         db.create_all()
+        create_grandslam_admin()
         # --- Add population logic here ---
         # Populate players from Players.csv if table is empty
         if not Player.query.first():
@@ -135,7 +136,7 @@ if __name__ == "__main__":
                             continue
                     db.session.commit()
                 print("Database populated successfully!")
-                create_grandslam_admin()
+                
             else:
                 print("Players.csv not found. Skipping population.")
     app.run(port=5001, debug=False)
