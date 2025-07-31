@@ -18,52 +18,70 @@ def admin_required(f):
 
 def update_team_total_points():
     print("Starting update of team total points...")
+    
+    # Get all matches in chronological order
+    matches = Match.query.order_by(Match.date).all()
+    if not matches:
+        print("No matches found for point calculation.")
+        return
+        
+    # Get all teams
     teams = Team.query.all()
+    if not teams:
+        print("No teams found for point calculation.")
+        return
+    
+    print(f"Processing {len(teams)} teams and {len(matches)} matches...")
     
     for team in teams:
         team_total_points = 0
-        
-        # Get all matches that have been played, ordered by date
-        matches = Match.query.order_by(Match.date).all()
+        print(f"\nProcessing team: {team.name} (ID: {team.id})")
         
         for match in matches:
+            match_points = 0
+            match_players = 0
+            
             # Get all players who were on the team during this match
-            for player_assoc in team.players:
-                # Check if player was on the team during this match
-                was_on_team = db.session.query(
-                    db.exists().where(
-                        db.and_(
-                            TeamPlayer.team_id == team.id,
-                            TeamPlayer.player_id == player_assoc.player_id,
-                            TeamPlayer.added_date <= match.date,
-                            db.or_(
-                                TeamPlayer.removed_date.is_(None),
-                                TeamPlayer.removed_date > match.date
-                            )
-                        )
-                    )
-                ).scalar()
+            team_players = db.session.query(TeamPlayer).filter(
+                TeamPlayer.team_id == team.id,
+                TeamPlayer.added_date <= match.date,
+                db.or_(
+                    TeamPlayer.removed_date.is_(None),
+                    TeamPlayer.removed_date > match.date
+                )
+            ).all()
+            
+            # Calculate points for each player in the team during this match
+            for tp in team_players:
+                # Get player's performance for this match
+                performance = PlayerPerformance.query.filter_by(
+                    player_id=tp.player_id,
+                    match_id=match.id
+                ).first()
                 
-                if was_on_team:
-                    # Get player's performance for this match
-                    performance = PlayerPerformance.query.filter_by(
-                        player_id=player_assoc.player_id,
-                        match_id=match.id
-                    ).first()
-                    
-                    if performance:
-                        points = performance.points or 0
-                        # Double points if this player was captain during this match
-                        if player_assoc.is_captain and performance.match_id == match.id:
-                            points *= 2
-                        team_total_points += points
+                if performance and performance.points is not None:
+                    points = performance.points
+                    # Double points for captain
+                    if tp.is_captain:
+                        points *= 2
+                        print(f"  - {Player.query.get(tp.player_id).name} (Captain): {performance.points} x 2 = {points} points")
+                    else:
+                        print(f"  - {Player.query.get(tp.player_id).name}: {points} points")
+                        
+                    match_points += points
+                    match_players += 1
+            
+            if match_players > 0:
+                print(f"Match {match.name} ({match.date.date()}): {match_points} points from {match_players} players")
+                team_total_points += match_points
         
         # Update team's total points
         team.total_points = team_total_points
         db.session.add(team)
+        print(f"Total points for team {team.name}: {team_total_points}")
     
     db.session.commit()
-    print("Finished updating team total points with historical data and captain bonus.")
+    print("\nFinished updating team total points with historical data and captain bonus.")
 
 @admin.route('/player_performance/<int:player_id>', methods=['DELETE'])
 @token_required
@@ -198,6 +216,9 @@ def add_match_performance():
         if not players_performance:
             return jsonify({'message': 'No players_performance data provided'}), 400
 
+        # Start a transaction
+        db.session.begin()
+        
         match = None
         if match_id:
             match = Match.query.get(match_id)
@@ -206,20 +227,29 @@ def add_match_performance():
         else:
             if not match_name:
                 return jsonify({'message': 'Missing match_name when creating a new match'}), 400
-            # Create a new Match
+            
+            # Check if match with same name already exists
             match = Match.query.filter_by(name=match_name).first()
             if not match:
                 try:
                     match_date = datetime.fromisoformat(match_date_str)
                 except ValueError:
                     return jsonify({'message': 'Invalid match_date format for new match. Use YYYY-MM-DDTHH:MM:SS.ffffff'}), 400
+                
+                # Create a new Match
                 match = Match(name=match_name, date=match_date)
                 db.session.add(match)
-                db.session.flush() # To get match.id
+                db.session.flush()  # To get match.id
+                print(f"Created new match: {match_name} (ID: {match.id}) on {match_date}")
 
         if not match:
             return jsonify({'message': 'Could not determine or create a match for performance data'}), 500
 
+        print(f"Processing performance data for match: {match.name} (ID: {match.id})")
+        
+        # Track updated player IDs for logging
+        updated_players = []
+        
         for pp_data in players_performance:
             player_id = pp_data.get('player_id')
             if not player_id:
@@ -237,12 +267,17 @@ def add_match_performance():
                 match_id=match.id
             ).first()
 
+            is_new = False
             if not player_performance:
+                is_new = True
                 player_performance = PlayerPerformance(
                     player_id=player_id,
                     match_id=match.id
                 )
                 db.session.add(player_performance)
+            
+            # Store previous points for logging
+            prev_points = player_performance.points
             
             # Update performance stats
             player_performance.goals = pp_data.get('goals', 0)
@@ -256,19 +291,46 @@ def add_match_performance():
 
             # Calculate points for this performance
             player_performance.points = calculate_player_points(player_performance, player.position)
+            
+            # Log the update
+            action = "Created" if is_new else "Updated"
+            points_change = f" (was {prev_points} points)" if prev_points is not None else ""
+            updated_players.append(f"{action} {player.name}: {player_performance.points} points{points_change}")
 
+        # Commit the performance data first
         db.session.commit()
-
-        # After adding performance data, update team total points
+        
+        # Log all updates
+        print("\n=== Player Performance Updates ===")
+        for update in updated_players:
+            print(f"- {update}")
+        print(f"Updated {len(updated_players)} player performances")
+        
+        # Now update all team points based on the new performance data
+        print("\nUpdating team points...")
         update_team_total_points()
-
-        return jsonify({'message': 'Match performance data added/updated successfully!', 'match_id': match.id, 'match_name': match.name}), 200
+        
+        # Get the updated match details
+        match_data = {
+            'id': match.id,
+            'name': match.name,
+            'date': match.date.isoformat(),
+            'player_count': len(updated_players)
+        }
+        
+        return jsonify({
+            'message': 'Match performance data processed successfully!', 
+            'match': match_data,
+            'updated_players': len(updated_players)
+        }), 200
 
     except Exception as e:
         db.session.rollback()
         import traceback
-        print("Error adding match performance:")
+        error_msg = f"Error adding match performance: {str(e)}"
+        print(error_msg)
         print(traceback.format_exc())
+        return jsonify({'error': error_msg}), 500
         return jsonify({'error': str(e)}), 500
 
 @admin.route('/games/<int:game_id>', methods=['DELETE'])
