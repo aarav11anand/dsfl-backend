@@ -54,19 +54,25 @@ def update_team_total_points():
     for team in teams:
         print(f"\nProcessing team: {team.name} (ID: {team.id})")
         
+        # Get all team players with their active periods
+        team_players = db.session.query(TeamPlayer).filter(
+            TeamPlayer.team_id == team.id
+        ).order_by(TeamPlayer.added_date).all()
+        
+        if not team_players:
+            print("  No players found for this team.")
+            continue
+            
         # Process each match in chronological order
         for match in matches:
-            # Get all players who were on this team during this match
-            team_players = db.session.query(TeamPlayer).filter(
-                TeamPlayer.team_id == team.id,
-                TeamPlayer.added_date <= match.date,
-                db.or_(
-                    TeamPlayer.removed_date.is_(None),
-                    TeamPlayer.removed_date > match.date
-                )
-            ).all()
+            # Find players who were on the team during this match
+            active_players = [
+                tp for tp in team_players 
+                if tp.added_date <= match.date and 
+                (tp.removed_date is None or tp.removed_date > match.date)
+            ]
             
-            if not team_players:
+            if not active_players:
                 print(f"  No active players for match: {match.name} ({match.date.date()})")
                 continue
                 
@@ -76,8 +82,8 @@ def update_team_total_points():
             # Get performances for this match
             performances = match_performances.get(match.id, {})
             
-            # Calculate points for each player in the team during this match
-            for tp in team_players:
+            # Calculate points for each active player in this match
+            for tp in active_players:
                 # Find this player's performance in this match
                 performance = performances.get(tp.player_id)
                 
@@ -87,10 +93,10 @@ def update_team_total_points():
                     # Double points for captain
                     if tp.is_captain:
                         points *= 2
-                        print(f"  - {match.name}: {Player.query.get(tp.player_id).name} (Captain) - "
+                        print(f"  - {match.name}: {tp.player.name} (Captain) - "
                               f"{performance.points} x 2 = {points} points")
                     else:
-                        print(f"  - {match.name}: {Player.query.get(tp.player_id).name} - {points} points")
+                        print(f"  - {match.name}: {tp.player.name} - {points} points")
                     
                     match_points += points
                     match_players += 1
