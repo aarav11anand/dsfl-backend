@@ -9,6 +9,10 @@ def validate_email(email):
     if not email.endswith('@doonschool.com'):
         return False, "Email must be from @doonschool.com domain"
 
+    # Check for admin email
+    if email == 'grandslam@doonschool.com':
+        return True, {'user_type': 'admin', 'is_admin': True}
+
     # Check for teacher emails (any initials@doonschool.com)
     teacher_pattern = r'^([a-zA-Z]+)@doonschool\.com$'
     teacher_match = re.match(teacher_pattern, email)
