@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, send_from_directory
 from config import Config
-from models import db, bcrypt, Player
+from models import db, bcrypt, Player, User
 from auth_routes import auth
 from team_routes import team
 from admin_routes import admin
@@ -97,17 +97,21 @@ def create_grandslam_admin():
         email = 'grandslam@doonschool.com'
         user = User.query.filter_by(email=email).first()
         if not user:
-            user = User(
-                name='Grandslam',
-                email=email,
-                house='Admin',
-                user_type='admin',
-                is_admin=True
-            )
-            user.set_password('admindsfl@xyz')
-            db.session.add(user)
-            db.session.commit()
-            print('Grandslam admin user created.')
+            try:
+                user = User(
+                    name='Grandslam',
+                    email=email,
+                    house='Admin',
+                    user_type='admin',
+                    is_admin=True
+                )
+                user.set_password('admindsfl@xyz')
+                db.session.add(user)
+                db.session.commit()
+                print('Grandslam admin user created successfully!')
+            except Exception as e:
+                db.session.rollback()
+                print(f'Error creating Grandslam admin: {str(e)}')
         else:
             print('Grandslam admin user already exists.')
 
