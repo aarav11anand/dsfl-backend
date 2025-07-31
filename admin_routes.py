@@ -252,105 +252,217 @@ def create_game():
 def add_match_performance():
     """
     Add or update player performance for a specific match.
-    If match_id is not provided, a new match will be created.
-    If a player already has a performance for this match, it will be updated.
+    
+    Request JSON format:
+    {
+        "match_id": 1,                    // Optional: ID of existing match
+        "match_name": "Gameweek 1",       // Required if match_id not provided
+        "match_date": "2023-01-01T15:00:00", // Optional, defaults to now
+        "players_performance": [
+            {
+                "player_id": 1,           // Required
+                "goals": 2,               // Optional, defaults to 0
+                "assists": 1,             // Optional, defaults to 0
+                "clean_sheet": false,      // Optional, defaults to false
+                "goals_conceded": 0,       // Optional, defaults to 0
+                "yellow_cards": 0,         // Optional, defaults to 0
+                "red_cards": 0,            // Optional, defaults to 0
+                "minutes_played": 90,      // Optional, defaults to 0
+                "bonus_points": 0          // Optional, defaults to 0
+            }
+        ]
+    }
     """
     try:
         data = request.get_json()
+        
+        # Validate required fields
+        if not data or not isinstance(data, dict):
+            return jsonify({'error': 'Invalid request data'}), 400
+            
         match_id = data.get('match_id')
         match_name = data.get('match_name')
-        match_date_str = data.get('match_date', datetime.utcnow().isoformat())
+        match_date_str = data.get('match_date')
         players_performance = data.get('players_performance', [])
+        
+        if not players_performance or not isinstance(players_performance, list):
+            return jsonify({'error': 'players_performance must be a non-empty array'}), 400
 
-        if not players_performance:
-            return jsonify({'message': 'No players_performance data provided'}), 400
+        # Validate each player's performance data
+        valid_performances = []
+        player_ids = set()
+        
+        for i, pp in enumerate(players_performance, 1):
+            if not isinstance(pp, dict):
+                return jsonify({'error': f'Player performance at index {i} must be an object'}), 400
+                
+            player_id = pp.get('player_id')
+            if not player_id or not isinstance(player_id, int):
+                return jsonify({'error': f'Invalid or missing player_id at index {i}'}), 400
+                
+            if player_id in player_ids:
+                return jsonify({'error': f'Duplicate player_id {player_id} in request'}), 400
+                
+            player_ids.add(player_id)
+            
+            # Validate player exists
+            if not Player.query.get(player_id):
+                return jsonify({'error': f'Player with ID {player_id} not found'}), 404
+                
+            # Validate stats
+            stats = {
+                'goals': pp.get('goals', 0),
+                'assists': pp.get('assists', 0),
+                'clean_sheet': bool(pp.get('clean_sheet', False)),
+                'goals_conceded': pp.get('goals_conceded', 0),
+                'yellow_cards': pp.get('yellow_cards', 0),
+                'red_cards': pp.get('red_cards', 0),
+                'minutes_played': pp.get('minutes_played', 0),
+                'bonus_points': pp.get('bonus_points', 0)
+            }
+            
+            # Ensure numeric values are non-negative
+            for stat, value in stats.items():
+                if stat != 'clean_sheet' and not isinstance(value, (int, float)) or value < 0:
+                    return jsonify({'error': f'Invalid {stat} value for player_id {player_id}'}), 400
+            
+            valid_performances.append((player_id, stats))
 
-        # Start a transaction
+        # Start transaction
         db.session.begin()
         
+        # Handle match creation/retrieval
         match = None
         if match_id:
             match = Match.query.get(match_id)
             if not match:
-                return jsonify({'message': f'Match with ID {match_id} not found.'}), 404
+                return jsonify({'error': f'Match with ID {match_id} not found'}), 404
         else:
             if not match_name:
-                return jsonify({'message': 'Missing match_name when creating a new match'}), 400
-            
-            # Check if match with same name already exists
+                return jsonify({'error': 'match_name is required when creating a new match'}), 400
+                
+            # Check for existing match with same name
             existing_match = Match.query.filter_by(name=match_name).first()
             if existing_match:
                 return jsonify({
-                    'message': f'A match with name "{match_name}" already exists (ID: {existing_match.id})',
-                    'match_id': existing_match.id
+                    'error': f'Match "{match_name}" already exists',
+                    'match_id': existing_match.id,
+                    'match_name': existing_match.name
                 }), 400
-                
-            try:
-                match_date = datetime.fromisoformat(match_date_str)
-            except ValueError:
-                return jsonify({'message': 'Invalid match_date format. Use YYYY-MM-DDTHH:MM:SS.ffffff'}), 400
             
-            # Create a new Match
+            # Parse match date or use current time
+            try:
+                match_date = datetime.fromisoformat(match_date_str) if match_date_str else datetime.utcnow()
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Invalid match_date format. Use ISO format (e.g., 2023-01-01T15:00:00)'}), 400
+            
+            # Create new match
             match = Match(name=match_name, date=match_date)
             db.session.add(match)
-            db.session.flush()  # To get match.id
+            db.session.flush()  # Get the match ID
             print(f"Created new match: {match_name} (ID: {match.id}) on {match_date}")
 
-        if not match:
-            return jsonify({'message': 'Could not determine or create a match for performance data'}), 500
-
-        print(f"Processing performance data for match: {match.name} (ID: {match.id})")
-        
-        # Track updated players for logging
-        updated_players = []
-        player_ids = set()
-        
         # Process each player's performance
-        for pp_data in players_performance:
-            player_id = pp_data.get('player_id')
-            if not player_id:
-                print(f"Skipping performance data due to missing player_id: {pp_data}")
-                continue
-                
-            # Check for duplicate player entries
-            if player_id in player_ids:
-                print(f"Duplicate entry for player_id {player_id}, skipping...")
-                continue
-            player_ids.add(player_id)
-
-            player = Player.query.get(player_id)
-            if not player:
-                print(f"Player with ID {player_id} not found, skipping performance data")
-                continue
-
-            # Check if performance already exists for this player in this match
-            existing_performance = PlayerPerformance.query.filter_by(
+        updated_players = []
+        
+        for player_id, stats in valid_performances:
+            # Check for existing performance
+            performance = PlayerPerformance.query.filter_by(
                 player_id=player_id,
                 match_id=match.id
             ).first()
-
-            if existing_performance:
+            
+            player = Player.query.get(player_id)
+            
+            if performance:
                 # Update existing performance
-                performance = existing_performance
-                update_fields = ['goals', 'assists', 'clean_sheet', 'goals_conceded', 
-                               'yellow_cards', 'red_cards', 'minutes_played', 'bonus_points']
-                
-                for field in update_fields:
-                    if field in pp_data:
-                        setattr(performance, field, pp_data[field])
+                for key, value in stats.items():
+                    setattr(performance, key, value)
+                action = 'updated'
             else:
-                # Create new performance record
+                # Create new performance
                 performance = PlayerPerformance(
                     player_id=player_id,
                     match_id=match.id,
-                    goals=pp_data.get('goals', 0),
-                    assists=pp_data.get('assists', 0),
-                    clean_sheet=pp_data.get('clean_sheet', False),
-                    goals_conceded=pp_data.get('goals_conceded', 0),
-                    yellow_cards=pp_data.get('yellow_cards', 0),
-                    red_cards=pp_data.get('red_cards', 0),
-                    minutes_played=pp_data.get('minutes_played', 0),
-                    bonus_points=pp_data.get('bonus_points', 0)
+                    **stats
+                )
+                db.session.add(performance)
+                action = 'added'
+            
+            # Calculate points for this performance
+            performance.points = calculate_player_points(performance, player.position)
+            
+            updated_players.append({
+                'player_id': player_id,
+                'player_name': player.name,
+                'action': action,
+                'points': performance.points,
+                'stats': stats
+            })
+            
+            print(f"{action.capitalize()} performance for {player.name} in match {match.name}: {performance.points} points")
+        
+        try:
+            # Commit all changes to the database
+            db.session.commit()
+            
+            # Update team points based on the new performance data
+            print("\nUpdating team points...")
+            update_team_total_points()
+            
+            # Get the updated match details
+            match_data = {
+                'id': match.id,
+                'name': match.name,
+                'date': match.date.isoformat(),
+                'player_count': len(updated_players)
+            }
+            
+            # Get updated team points for response
+            teams = Team.query.all()
+            team_updates = [{
+                'team_id': team.id,
+                'team_name': team.name,
+                'total_points': team.total_points
+            } for team in teams]
+            
+            # Log all updates
+            print("\n=== Player Performance Updates ===")
+            for update in updated_players:
+                stats_str = ", ".join(f"{k}: {v}" for k, v in update['stats'].items())
+                print(f"- {update['player_name']} ({update['action']}): {update['points']} pts | {stats_str}")
+            
+            for team in team_updates:
+                print(f"Team {team['team_name']} now has {team['total_points']} points")
+            
+            return jsonify({
+                'message': 'Match performance data processed successfully!', 
+                'match': match_data,
+                'players_updated': [{
+                    'player_id': up['player_id'],
+                    'player_name': up['player_name'],
+                    'action': up['action'],
+                    'points': up['points'],
+                    'stats': up['stats']
+                } for up in updated_players],
+                'teams_updated': team_updates
+            }), 200
+            
+        except Exception as e:
+            db.session.rollback()
+            import traceback
+            error_msg = f"Error updating team points: {str(e)}"
+            print(error_msg)
+            print(traceback.format_exc())
+            return jsonify({'error': error_msg}), 500
+
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        error_msg = f"Error adding match performance: {str(e)}"
+        print(error_msg)
+        print(traceback.format_exc())
+        return jsonify({'error': error_msg}), 500
                 )
                 db.session.add(performance)
             
