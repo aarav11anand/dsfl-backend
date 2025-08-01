@@ -2,18 +2,38 @@ from app import app, db
 from models import User, Player
 import os
 import csv
-from sqlalchemy.exc import IntegrityError
+import sys
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 def populate_players():
     """Populate players from Players.csv"""
     try:
-        with open('Players.csv', 'r') as f:
+        # Get the absolute path to the current directory
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        csv_path = os.path.join(current_dir, 'Players.csv')
+        
+        print(f"Looking for Players.csv at: {csv_path}")
+        
+        if not os.path.exists(csv_path):
+            print(f"Error: Players.csv not found at {csv_path}")
+            print(f"Current working directory: {os.getcwd()}")
+            print(f"Files in current directory: {os.listdir('.')}")
+            return False
+            
+        with open(csv_path, 'r', encoding='utf-8') as f:
             csv_reader = csv.DictReader(f)
             players_added = 0
             
             # Clear existing players
-            Player.query.delete()
+            print("Clearing existing players...")
+            try:
+                Player.query.delete()
+                db.session.commit()
+            except SQLAlchemyError as e:
+                print(f"Error clearing players: {str(e)}")
+                db.session.rollback()
             
+            print("Adding players from CSV...")
             for row in csv_reader:
                 try:
                     player = Player(
@@ -27,18 +47,26 @@ def populate_players():
                     )
                     db.session.add(player)
                     players_added += 1
+                    
+                    # Commit in batches of 10
+                    if players_added % 10 == 0:
+                        db.session.commit()
+                        print(f"Added {players_added} players so far...")
+                        
                 except (ValueError, KeyError) as e:
                     print(f"Error processing player {row.get('name', 'unknown')}: {str(e)}")
+                    print(f"Row data: {row}")
+                    continue
             
+            # Final commit for any remaining players
             db.session.commit()
             print(f"Successfully added {players_added} players to the database")
             return True
             
-    except FileNotFoundError:
-        print("Error: Players.csv not found in the current directory")
-        return False
     except Exception as e:
-        print(f"Error populating players: {str(e)}")
+        print(f"Error populating players: {str(e)}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         db.session.rollback()
         return False
 
@@ -89,4 +117,5 @@ if __name__ == '__main__':
     
     # Initialize the database
     init_db()
+    populate_players()
     print("Database initialization complete!")

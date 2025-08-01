@@ -49,6 +49,20 @@ db.init_app(app)
 bcrypt.init_app(app)
 migrate = Migrate(app, db)
 
+# Import init_db here to avoid circular imports
+from init_db import init_db
+
+# Initialize database on startup
+with app.app_context():
+    # Check if the database is empty (no users)
+    if not User.query.first():
+        print("Initializing database...")
+        db.create_all()
+        # Create admin user and populate players
+        from init_db import init_db
+        init_db()
+        print("Database initialized with admin user and players")
+
 # Register blueprints
 app.register_blueprint(auth)
 app.register_blueprint(team, url_prefix='/api/team')
