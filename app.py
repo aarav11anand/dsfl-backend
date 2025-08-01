@@ -63,29 +63,10 @@ app.register_blueprint(auth)
 app.register_blueprint(team, url_prefix='/api/team')
 app.register_blueprint(admin, url_prefix='/api/admin')
 
-# Create admin user when the app starts
+# Create tables if they don't exist
 with app.app_context():
     db.create_all()
-    email = 'grandslam@doonschool.com'
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        try:
-            user = User(
-                name='Grandslam',
-                email=email,
-                house='Admin',
-                user_type='admin',
-                is_admin=True
-            )
-            user.set_password('admindsfl@xyz')
-            db.session.add(user)
-            db.session.commit()
-            print('Grandslam admin user created successfully!')
-        except Exception as e:
-            db.session.rollback()
-            print(f'Error creating Grandslam admin: {str(e)}')
-    else:
-        print('Grandslam admin user already exists.')
+    print("Database tables created/verified")
 
 @app.route('/api/players')
 def get_players():
