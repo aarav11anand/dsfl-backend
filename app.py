@@ -59,28 +59,33 @@ with app.app_context():
         print(f"Current working directory: {os.getcwd()}")
         print(f"Files in current directory: {os.listdir('.')}")
         
-        # Check if the database is empty (no users)
-        user_count = User.query.count()
-        print(f"Found {user_count} users in the database")
+        # Always ensure tables exist
+        print("\n=== Ensuring database tables exist ===")
+        db.create_all()
+        print("Database tables verified")
         
+        # Check if we need to create admin user or populate players
+        user_count = User.query.count()
+        player_count = Player.query.count()
+        
+        print(f"Found {user_count} users and {player_count} players in the database")
+        
+        # Always ensure we have an admin user and players
+        from init_db import init_db, populate_players
+        
+        # If no users, run full initialization
         if user_count == 0:
-            print("\n=== Initializing database... ===")
-            print("Creating database tables...")
-            db.create_all()
-            print("Database tables created")
-            
-            # Create admin user and populate players
-            print("\n=== Running database initialization script ===")
-            from init_db import init_db
-            print("Calling init_db()...")
+            print("\n=== Running full database initialization ===")
             init_db()
-            print("\n=== Database initialization complete ===")
-            print(f"Total users after initialization: {User.query.count()}")
-            print(f"Total players after initialization: {Player.query.count()}")
         else:
-            print("\n=== Database already initialized ===")
-            print(f"Total users: {User.query.count()}")
-            print(f"Total players: {Player.query.count()}")
+            # Always ensure players are populated, even if users exist
+            print("\n=== Ensuring players are populated ===")
+            if player_count == 0:
+                print("No players found, populating from CSV...")
+                if not populate_players():
+                    print("WARNING: Failed to populate players from CSV")
+            else:
+                print(f"Found {player_count} players, skipping population")
             
     except Exception as e:
         print(f"\n!!! ERROR during database initialization: {str(e)}", file=sys.stderr)

@@ -118,6 +118,7 @@ if __name__ == '__main__':
         print("No existing database to remove")
     
     # Initialize the database
-    init_db()
     populate_players()
+    init_db()
+    
     print("Database initialization complete!")
