@@ -54,14 +54,38 @@ from init_db import init_db
 
 # Initialize database on startup
 with app.app_context():
-    # Check if the database is empty (no users)
-    if not User.query.first():
-        print("Initializing database...")
-        db.create_all()
-        # Create admin user and populate players
-        from init_db import init_db
-        init_db()
-        print("Database initialized with admin user and players")
+    try:
+        print("\n=== Starting database initialization check ===")
+        print(f"Current working directory: {os.getcwd()}")
+        print(f"Files in current directory: {os.listdir('.')}")
+        
+        # Check if the database is empty (no users)
+        user_count = User.query.count()
+        print(f"Found {user_count} users in the database")
+        
+        if user_count == 0:
+            print("\n=== Initializing database... ===")
+            print("Creating database tables...")
+            db.create_all()
+            print("Database tables created")
+            
+            # Create admin user and populate players
+            print("\n=== Running database initialization script ===")
+            from init_db import init_db
+            print("Calling init_db()...")
+            init_db()
+            print("\n=== Database initialization complete ===")
+            print(f"Total users after initialization: {User.query.count()}")
+            print(f"Total players after initialization: {Player.query.count()}")
+        else:
+            print("\n=== Database already initialized ===")
+            print(f"Total users: {User.query.count()}")
+            print(f"Total players: {Player.query.count()}")
+            
+    except Exception as e:
+        print(f"\n!!! ERROR during database initialization: {str(e)}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
 
 # Register blueprints
 app.register_blueprint(auth)

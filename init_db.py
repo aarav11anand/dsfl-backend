@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 def populate_players():
     """Populate players from Players.csv"""
+    print("\n=== Starting player population ===")
     try:
         # Get the absolute path to the current directory
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -18,6 +19,7 @@ def populate_players():
             print(f"Error: Players.csv not found at {csv_path}")
             print(f"Current working directory: {os.getcwd()}")
             print(f"Files in current directory: {os.listdir('.')}")
+            print("=== Player population failed: CSV file not found ===")
             return False
             
         with open(csv_path, 'r', encoding='utf-8') as f:
