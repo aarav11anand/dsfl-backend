@@ -5,6 +5,8 @@ from config import BUDGET, FORMATIONS
 from flask_jwt_extended import get_jwt_identity
 from sqlalchemy.orm import joinedload
 from decimal import Decimal
+from datetime import datetime
+
 team = Blueprint('team', __name__)
 
 # Helper function for validation
@@ -120,92 +122,221 @@ def create_my_team():
 @team.route('/my_team/<int:team_id>', methods=['PUT'])
 @token_required
 def update_my_team(team_id):
-    # Check if team updates are locked
-    updates_locked = AppSettings.get_setting('team_updates_locked', 'false').lower() == 'true'
-    if updates_locked:
-        return jsonify({'message': 'Team updates are currently locked by the administrator.'}), 403
-        
-    user_id = request.user['user_id']
-    if not user_id:
-        return jsonify({'message': 'Unauthorized: User not found'}), 401
-
-    data = request.get_json()
-    team_name = data.get('name', 'My Fantasy Team')
-    players_data = data.get('players', []) # List of {player_id: int, is_captain: bool}
-    formation = data.get('formation')
-
-    # Validate input data
-    error_response, status_code = validate_team_data(players_data, formation)
-    if error_response:
-        return jsonify(error_response), status_code
-
-    team_to_update = Team.query.filter_by(id=team_id, user_id=user_id).first()
-    if not team_to_update:
-        return jsonify({'message': 'Team not found or not authorized to update.'}), 404
-
+    print("\n=== Starting update_my_team function ===")
+    print(f"Team ID: {team_id}")
+    print(f"Request data: {request.get_json()}")
+    
     try:
-        team_to_update.name = team_name
-        team_to_update.formation = formation
+        # Check if team updates are locked
+        updates_locked = AppSettings.get_setting('team_updates_locked', 'false').lower() == 'true'
+        if updates_locked:
+            print("Team updates are locked")
+            return jsonify({'message': 'Team updates are currently locked by the administrator.'}), 403
+            
+        user_id = request.user['user_id']
+        print(f"User ID from token: {user_id}")
+        if not user_id:
+            print("No user_id in request")
+            return jsonify({'message': 'Unauthorized: User not found'}), 401
 
-        # Clear existing players for this team
-        TeamPlayer.query.filter_by(team_id=team_to_update.id).delete()
-        db.session.flush() # Ensure old associations are deleted before adding new ones
+        data = request.get_json()
+        team_name = data.get('name', 'My Fantasy Team')
+        players_data = data.get('players', []) # List of {player_id: int, is_captain: bool}
+        formation = data.get('formation')
+        
+        print(f"Updating team {team_id} with name: {team_name}, formation: {formation}")
+        print(f"Players data: {players_data}")
 
-        for player_info in players_data:
-            team_player = TeamPlayer(
-                team_id=team_to_update.id,
-                player_id=player_info['player_id'],
-                is_captain=player_info['is_captain']
-            )
-            db.session.add(team_player)
+        # Validate input data
+        error_response, status_code = validate_team_data(players_data, formation)
+        if error_response:
+            print(f"Validation failed: {error_response}")
+            return jsonify(error_response), status_code
 
-        db.session.commit()
-        return jsonify({'message': 'Team updated successfully!', 'team_id': team_to_update.id}), 200
+        team_to_update = Team.query.filter_by(id=team_id, user_id=user_id).first()
+        if not team_to_update:
+            print(f"Team {team_id} not found or not owned by user {user_id}")
+            return jsonify({'message': 'Team not found or not authorized to update.'}), 404
 
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'message': 'Error updating team', 'error': str(e)}), 500
+        print(f"Found team to update: {team_to_update.name}")
+        
+        try:
+            team_to_update.name = team_name
+            team_to_update.formation = formation
+
+            print("Clearing existing players for this team...")
+            # Clear existing players for this team
+            TeamPlayer.query.filter_by(team_id=team_to_update.id).delete()
+            db.session.flush() # Ensure old associations are deleted before adding new ones
+
+            print("Adding new players to the team...")
+            for i, player_info in enumerate(players_data, 1):
+                print(f"  Processing player {i}/{len(players_data)}: {player_info}")
+                try:
+                    team_player = TeamPlayer(
+                        team_id=team_to_update.id,
+                        player_id=player_info['player_id'],
+                        is_captain=player_info.get('is_captain', False)
+                    )
+                    db.session.add(team_player)
+                    print(f"  Added player {player_info['player_id']} to team {team_to_update.id}")
+                except Exception as player_error:
+                    print(f"  Error adding player {player_info.get('player_id')}: {str(player_error)}")
+                    raise
+
+            print("Committing changes to database...")
+            db.session.commit()
+            print("Team updated successfully!")
+            return jsonify({
+                'message': 'Team updated successfully!', 
+                'team_id': team_to_update.id
+            }), 200
+
+        except Exception as e:
+            db.session.rollback()
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"Error in team update transaction: {str(e)}\n{error_trace}")
+            return jsonify({
+                'message': 'Error updating team', 
+                'error': str(e),
+                'trace': error_trace
+            }), 500
+            
+    except Exception as outer_error:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"Outer error in update_my_team: {str(outer_error)}\n{error_trace}")
+        return jsonify({
+            'message': 'Internal server error during team update',
+            'error': str(outer_error),
+            'trace': error_trace
+        }), 500
 
 @team.route('/my_team', methods=['GET'])
 @token_required
 def get_my_team():
-    user_id = request.user['user_id']
-    if not user_id:
-        return jsonify({'message': 'Unauthorized: User not found'}), 401
-    team = (db.session.query(Team)
-            .options(joinedload(Team.players).joinedload(TeamPlayer.player).joinedload(Player.performances))
-            .filter_by(user_id=user_id)
-            .first())
-    if not team:
-        return jsonify({'message': 'No team found for this user.'}), 404
-    players_data = []
-    for team_player in team.players:
-        player = team_player.player
-        if player:
-            total_points = sum(perf.points for perf in player.performances) if player.performances else 0
-            players_data.append({
-                'id': player.id,
-                'name': player.name,
-                'position': player.position,
-                'price': player.price,
-                'house': player.house,
-                'points': total_points,
-                'is_captain': team_player.is_captain
-            })
-    captain_info = next((p for p in players_data if p['is_captain']), None)
-    teams = Team.query.order_by(Team.total_points.desc()).all()
-    team_rank = next((i + 1 for i, t in enumerate(teams) if t.id == team.id), None)
-    team_info = {
-        'id': team.id,
-        'name': team.name,
-        'user_id': team.user_id,
-        'formation': team.formation,
-        'players': players_data,
-        'captain': captain_info,
-        'total_points': team.total_points,
-        'rank': team_rank
-    }
-    return jsonify(team_info), 200
+    try:
+        print("\n=== Starting get_my_team function ===")
+        from sqlalchemy.orm import joinedload
+        from models import Team, TeamPlayer, Player, db
+        
+        # Debug: Print request headers
+        print("Request Headers:", dict(request.headers))
+        
+        # Get user info from token
+        user_info = getattr(request, 'user', {})
+        print("User info from token:", user_info)
+        
+        user_id = user_info.get('user_id')
+        print(f"User ID from token: {user_id}")
+        
+        if not user_id:
+            return jsonify({'message': 'Unauthorized: User ID not found in token'}), 401
+            
+        print("Querying team...")
+        try:
+            team = (db.session.query(Team)
+                    .options(joinedload(Team.players).joinedload(TeamPlayer.player).joinedload(Player.performances))
+                    .filter(Team.user_id == user_id)
+                    .first())
+            print(f"Team query executed. Found: {team is not None}")
+        except Exception as query_error:
+            print("Error executing team query:", str(query_error))
+            raise
+                
+        if not team:
+            print("No team found for user")
+            return jsonify({'message': 'No team found for this user.'}), 404
+            
+        print("Processing players...")
+        players_data = []
+        try:
+            for i, team_player in enumerate(team.players or []):
+                try:
+                    player = team_player.player
+                    if not player:
+                        print(f"Warning: TeamPlayer {team_player.id} has no associated player")
+                        continue
+                        
+                    print(f"Processing player {i+1}/{len(team.players)}: {player.name} (ID: {player.id})")
+                    
+                    # Safely get performances
+                    performances = getattr(player, 'performances', [])
+                    print(f"  - Player has {len(performances)} performances")
+                    
+                    # Calculate total points safely
+                    total_points = 0
+                    try:
+                        if performances:
+                            total_points = sum(getattr(perf, 'points', 0) for perf in performances)
+                    except Exception as calc_error:
+                        print(f"  - Error calculating points: {str(calc_error)}")
+                        total_points = 0
+                    
+                    # Build player data with safe attribute access
+                    player_data = {
+                        'id': player.id,
+                        'name': getattr(player, 'name', 'Unknown'),
+                        'position': getattr(player, 'position', 'UNK'),
+                        'price': float(getattr(player, 'price', 0)),
+                        'house': getattr(player, 'house', None),
+                        'points': total_points,
+                        'is_captain': getattr(team_player, 'is_captain', False)
+                    }
+                    players_data.append(player_data)
+                    
+                except Exception as player_error:
+                    print(f"Error processing player {getattr(player, 'id', 'unknown')}:")
+                    import traceback
+                    print(traceback.format_exc())
+                    continue
+        except Exception as players_error:
+            print("Error processing players:", str(players_error))
+            raise
+                
+        print("Finding captain...")
+        captain_info = next((p for p in players_data if p.get('is_captain')), None)
+        
+        print("Querying team rankings...")
+        try:
+            teams = Team.query.order_by(Team.total_points.desc()).all()
+            team_rank = next((i + 1 for i, t in enumerate(teams) if t.id == team.id), None)
+        except Exception as rank_error:
+            print("Error getting team rankings:", str(rank_error))
+            team_rank = None
+        
+        team_info = {
+            'id': team.id,
+            'name': team.name,
+            'user_id': team.user_id,
+            'formation': team.formation,
+            'players': players_data,
+            'captain': captain_info,
+            'total_points': getattr(team, 'total_points', 0),
+            'rank': team_rank
+        }
+        
+        print("Returning team info...")
+        return jsonify(team_info), 200
+        
+    except Exception as e:
+        print("\n=== ERROR in get_my_team ===")
+        error_type = type(e).__name__
+        error_msg = str(e)
+        print(f"Error type: {error_type}")
+        print(f"Error message: {error_msg}")
+        import traceback
+        print("Traceback:")
+        traceback.print_exc()
+        
+        return jsonify({
+            'message': 'An error occurred while fetching team data',
+            'error': error_msg,
+            'error_type': error_type,
+            'request_user': str(getattr(request, 'user', 'No user in request')),
+            'request_headers': dict(request.headers) if hasattr(request, 'headers') else 'No headers'
+        }), 500
 
 @team.route('/leaderboard', methods=['GET'])
 @token_required

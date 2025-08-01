@@ -3,9 +3,16 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    SECRET_KEY = "dsfl-secret"  # change in production
-    JWT_SECRET = "dsfl-jwt-secret"  # used for JWT token encryption
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///dsfl.db'
+    # Load from environment variables with defaults for development
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    JWT_SECRET = os.environ.get('JWT_SECRET') or 'dev-jwt-secret-change-in-production'
+    
+    # Database configuration
+    if os.environ.get('DATABASE_URL'):
+        SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL'].replace('postgres://', 'postgresql://', 1)  # Heroku compatibility
+    else:
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'dsfl.db')
+        
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Fantasy Football Specific Constants

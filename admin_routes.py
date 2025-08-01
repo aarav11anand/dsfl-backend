@@ -49,6 +49,40 @@ def update_team_total_points():
     db.session.commit()
     print("Finished updating team total points with captain bonus.")
 
+@admin.route('/reset_all_points', methods=['POST'])
+@token_required
+@admin_required
+def reset_all_points():
+    """
+    Reset all points for all players and teams
+    This will:
+    1. Delete all player performances
+    2. Reset all team total_points to 0
+    3. Reset all player points to 0
+    """
+    try:
+        # Delete all player performances
+        PlayerPerformance.query.delete()
+        
+        # Reset all team points to 0
+        Team.query.update({Team.total_points: 0})
+        
+        # Commit the changes
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Successfully reset all points',
+            'players_affected': PlayerPerformance.query.count(),
+            'teams_updated': Team.query.count()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        print("Error resetting all points:")
+        print(traceback.format_exc())
+        return jsonify({'error': str(e)}), 500
+
 @admin.route('/player_performance/<int:player_id>', methods=['DELETE'])
 @token_required
 @admin_required
@@ -71,6 +105,70 @@ def reset_player_points(player_id):
         db.session.rollback()
         import traceback
         print("Error resetting player points:")
+        print(traceback.format_exc())
+        return jsonify({'error': str(e)}), 500
+
+@admin.route('/update_player_points', methods=['POST'])
+@token_required
+@admin_required
+def update_player_points():
+    try:
+        data = request.get_json()
+        player_id = data.get('player_id')
+        points = data.get('points')
+        match_name = data.get('match_name', 'Direct Points Update')
+        
+        # Validate input
+        if not player_id or points is None:
+            return jsonify({'message': 'Player ID and points are required'}), 400
+        
+        # Get the player
+        player = Player.query.get(player_id)
+        if not player:
+            return jsonify({'message': f'Player with ID {player_id} not found'}), 404
+            
+        # Find or create a match for direct points
+        match = Match.query.filter_by(name=match_name).first()
+        if not match:
+            match = Match(name=match_name, date=datetime.utcnow())
+            db.session.add(match)
+            db.session.flush()  # Get the match ID
+        
+        # Create a new performance record
+        performance = PlayerPerformance(
+            player_id=player_id,
+            match_id=match.id,
+            points=points,
+            # Set other fields to 0 or default values
+            goals=0,
+            assists=0,
+            clean_sheet=False,
+            goals_conceded=0,
+            yellow_cards=0,
+            red_cards=0,
+            minutes_played=90,  # Assuming full match by default
+            bonus_points=0
+        )
+        
+        db.session.add(performance)
+        
+        # Update points for all teams that include this player
+        player.update_teams_points(points)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Player points updated successfully',
+            'player_id': player_id,
+            'points': points,
+            'match_id': match.id,
+            'teams_updated': len(player.team_associations)
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        print("Error updating player points:")
         print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 

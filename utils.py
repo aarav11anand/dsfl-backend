@@ -32,12 +32,14 @@ def validate_email(email):
     
     # Map batch to form
     batch_to_form = {
-        '2026': 'SC',
-        '2027': 'S',
-        '2028': 'A',
-        '2029': 'B',
-        '2030': 'C',
-        '2031': 'D'
+        '2024': 'OB',  # Old Boy
+        '2025': 'OB',  # Old Boy
+        '2026': 'SC',  # Super Colts
+        '2027': 'S',   # School
+        '2028': 'A',   # A Level
+        '2029': 'B',   # B Level
+        '2030': 'C',   # C Level
+        '2031': 'D'    # D Level
     }
     
     if batch not in batch_to_form:

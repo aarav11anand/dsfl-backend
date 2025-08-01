@@ -17,14 +17,32 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__, static_folder='../frontend/frontend/build')
 app.config.from_object(Config)
+app.config['DEBUG'] = True
+app.config['PROPAGATE_EXCEPTIONS'] = True
 
-# Configure CORS with specific origin and credentials
-CORS(app, 
-     resources={r"/*": {"origins": "*"}},
-     supports_credentials=True,
-     allow_headers=["Content-Type", "Authorization"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-)
+# Configure CORS based on environment
+if os.environ.get('FLASK_ENV') == 'production':
+    # In production, only allow requests from the frontend domain
+    frontend_url = os.environ.get('FRONTEND_URL', 'https://your-frontend-domain.com')
+    CORS(app, 
+         resources={
+             r"/*": {
+                 "origins": [frontend_url],
+                 "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                 "allow_headers": ["Content-Type", "Authorization"],
+                 "supports_credentials": True,
+                 "expose_headers": ["Content-Range", "X-Total-Count"]
+             }
+         }
+    )
+else:
+    # In development, allow all origins for easier development
+    CORS(app, 
+         resources={r"/*": {"origins": "*"}},
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    )
 
 # Error handling
 @app.errorhandler(IntegrityError)

@@ -23,6 +23,9 @@ class User(db.Model):
     form = db.Column(db.String(10), nullable=True)  # For students (SC, S, A, B, C, D)
     initials = db.Column(db.String(10), nullable=True)  # For teachers
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp(), nullable=False)
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), 
+                          onupdate=db.func.current_timestamp(), nullable=False)
 
     # One-to-one relationship with Team (each user can have one team)
     team = db.relationship('Team', backref='user', uselist=False, lazy=True)
@@ -58,6 +61,23 @@ class Player(db.Model):
     team_associations = db.relationship('TeamPlayer', back_populates='player', lazy=True)
     # Relationship to PlayerPerformance for one-to-many
     performances = db.relationship('PlayerPerformance', back_populates='player', lazy=True)
+    
+    def update_teams_points(self, points_to_add):
+        """Update points for all teams that include this player.
+        If the player is a captain in a team, double the points for that team.
+        """
+        for team_player in self.team_associations:
+            team = team_player.team
+            # Double points if the player is a captain in this team
+            points_to_add_team = points_to_add * 2 if team_player.is_captain else points_to_add
+            team.total_points += points_to_add_team
+            db.session.add(team)
+            
+            # Log the points update
+            print(f"Added {points_to_add_team} points to team {team.id} "
+                  f"(captain: {team_player.is_captain}) for player {self.id}")
+        
+        db.session.commit()
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -73,6 +93,7 @@ class TeamPlayer(db.Model):
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), primary_key=True)
     is_captain = db.Column(db.Boolean, default=False, nullable=False)
+    added_at = db.Column(db.DateTime, default=db.func.current_timestamp(), nullable=False)
 
     # Relationships to Team and Player
     team = db.relationship('Team', back_populates='players')

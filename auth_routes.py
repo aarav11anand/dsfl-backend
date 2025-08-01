@@ -1,6 +1,7 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from models import db, User
 from utils import generate_token, validate_email
+from datetime import datetime
 
 auth = Blueprint('auth', __name__)
 
@@ -40,29 +41,47 @@ def signup():
         return jsonify({"message": "Email already registered"}), 409
 
     try:
+        print(f"Attempting to create user with email: {email}")
+        print(f"User type: {user_type}")
+        print(f"Result from validation: {result}")
+        
         # Create new user with extracted information
         new_user = User(
             name=name,
             email=email,
             house=house,
-            user_type=user_type
+            user_type=user_type,
+            created_at=datetime.utcnow()  # Explicitly set created_at
         )
         
         # Add additional fields based on user type
         if user_type == 'student':
-            new_user.school_no = result['school_no']
-            new_user.batch = result['batch']
-            new_user.form = result['form']
+            print(f"Creating student with batch: {result.get('batch')}")
+            new_user.school_no = result.get('school_no')
+            new_user.batch = result.get('batch')
+            new_user.form = result.get('form', 'OB')  # Default to 'OB' for Old Boys if not specified
+            print(f"Set form to: {new_user.form}")
         else:  # teacher
-            new_user.initials = result['initials']
+            print(f"Creating teacher with initials: {result.get('initials')}")
+            new_user.initials = result.get('initials')
         
         new_user.set_password(password)
         db.session.add(new_user)
+        print("Attempting to commit user to database...")
         db.session.commit()
+        print("User created successfully!")
         return jsonify({"message": "Signup successful"}), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({"message": "Error creating user", "error": str(e)}), 500
+        import traceback
+        error_trace = traceback.format_exc()
+        print("Error creating user:")
+        print(error_trace)
+        return jsonify({
+            "message": "Error creating user", 
+            "error": str(e),
+            "trace": error_trace
+        }), 500
 
 @auth.route("/login", methods=["POST"])
 def login():
