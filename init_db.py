@@ -42,10 +42,7 @@ def populate_players():
                         name=row['name'].strip(),
                         position=row['position'].strip(),
                         price=float(row['price']),
-                        house=row['house'].strip(),
-                        points=0,  # Initialize points to 0
-                        goals=0,   # Initialize goals to 0
-                        assists=0  # Initialize assists to 0
+                        house=row['house'].strip()
                     )
                     db.session.add(player)
                     players_added += 1
